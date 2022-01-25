@@ -7,6 +7,7 @@
                  ;[com.algolia/algoliasearch-core "3.16.1"]
                  ;[com.algolia/algoliasearch-java-net "3.16.1"]
                  [com.algolia/algoliasearch-apache "3.13.0"]
+                 [cheshire "5.10.2"]
                  [com.google.code.gson/gson "2.8.9"]
                  [clojure-humanize "0.2.2"]
                  [ring-cors "0.1.13"]
