@@ -6,7 +6,6 @@
     [job-board-server.middleware :as middleware]
     [ring.util.response]
     [cheshire.core :as ch]
-    [ring.middleware.cors :refer [wrap-cors]]
     [job-board-server.config :refer [env]]
     [mount.core :refer [defstate]]
     [ring.util.http-response :as response])
@@ -76,7 +75,7 @@
 
 (defn home-routes []
   [""
-   {:middleware [middleware/cors-handler
+   {:middleware [middleware/wrap-cors
                  middleware/wrap-csrf
                  middleware/wrap-formats]}
    ["/" {:get home-page}]

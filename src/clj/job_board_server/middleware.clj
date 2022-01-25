@@ -8,7 +8,6 @@
     [muuntaja.middleware :refer [wrap-format wrap-params]]
     [job-board-server.config :refer [env]]
     [ring.middleware.flash :refer [wrap-flash]]
-    [ring.middleware.cors :refer [wrap-cors]]
     [ring.adapter.undertow.middleware.session :refer [wrap-session]]
     [ring.middleware.defaults :refer [site-defaults wrap-defaults]]))
 
@@ -31,12 +30,16 @@
        {:status 403
         :title  "Invalid anti-forgery token"})}))
 
-(defn cors-handler [handler]
-  (prn handler)
-  (wrap-cors
-    handler
-    :access-control-allow-origin [#"http://localhost:8000" #"https://amiskov.github.io/job-board-frontend"]
-    :access-control-allow-methods [:get]))
+(defn wrap-cors
+  "Wrap the server response in a Control-Allow-Origin Header to
+  allow connections from the web app."
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (-> response
+          (assoc-in [:headers "Access-Control-Allow-Origin"] "*")
+          (assoc-in [:headers "Access-Control-Allow-Headers"] "*")
+          (assoc-in [:headers "Access-Control-Allow-Methods"] "*")))))
 
 (defn wrap-formats [handler]
   (let [wrapped (-> handler wrap-params (wrap-format formats/instance))]

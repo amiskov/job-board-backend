@@ -10,7 +10,7 @@
                  [cheshire "5.10.2"]
                  [com.google.code.gson/gson "2.8.9"]
                  [clojure-humanize "0.2.2"]
-                 [ring-cors "0.1.13"]
+                 ;[ring-cors "0.1.13"]
                  [clojure.java-time "0.3.3"]
                  [cprop "0.1.19"]
                  [expound "0.9.0"]
