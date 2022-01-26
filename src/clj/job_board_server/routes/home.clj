@@ -23,17 +23,20 @@
                        index (.initIndex algolia-client "jobs")]
                    index))
 
-(defn search-algolia [q]
-  (.search algolia-index (Query. q)))                       ;
-
+(defn search-algolia [q p]
+  (let [qObj (Query. q)]
+    (.setPage qObj p)
+    (.search algolia-index qObj)))                          ;
 
 (defn parse-remun [hit]
-  (str (if (get-in hit [:remuneration :competitive])
-         "Competitive"
-         (let [r (:remuneration hit)
-               ->k #(str (/ % 1000) "K")]
-           (str (->k (:min r)) " - " (->k (:max r)))))
-       (when (get-in hit [:remuneration :equity]) " + Equity")))
+  (if-let [r (:remuneration hit)]
+    (str (if (:competitive r)
+           "Competitive"
+           (let [to-k #(str (/ % 1000) "K")]
+             (str (when (:min r) (to-k (:min r)))
+                  " - "
+                  (when (:max r) (to-k (:max r))))))
+         (when (:equity r) " + Equity"))))
 
 (defn smaller-logo-url [logo-url]
   (let [id (last (str/split logo-url #"/"))
@@ -43,6 +46,7 @@
 
 (defn parse-hit [hit]
   {:last-modified-ts    (:last-modified hit)
+   :slug                (:slug hit)
    :last-modified-human (h/datetime (:last-modified hit))
    :title               (:title hit)
    :company-country     (str (get-in hit [:company :name]) ", " (get-in hit [:location :country]))
@@ -64,7 +68,7 @@
                   (keywordize-keys))]
     (map parse-hit hits)))
 
-(defn parse-search-result [^SearchResult sr]
+(defn parse-search-result [sr]
   {:pages         (.getNbPages sr)
    :current-page  (.getPage sr)
    :nb-hits       (.getNbHits sr)
@@ -76,8 +80,8 @@
 
 (defn search [{:keys [params]}]
   (let [q (:query params)
-        resp (->> q
-                  (search-algolia)
+        p (:query-page params)
+        resp (->> (search-algolia q (Integer/parseInt p))
                   (parse-search-result))]
     (response/ok resp)))
 
@@ -88,14 +92,3 @@
                  middleware/wrap-formats]}
    ["/" {:get home-page}]
    ["/search" {:get search}]])
-
-(comment
-
-
-
-  (smaller-logo-url "https://functionalworks-backend--prod.s3.amazonaws.com/logos/b99b94fd5cf03260daed09943b18e596")
-
-
-  ;b99b94fd5cf03260daed09943b18e596
-  (parse-search-result (search-algolia "clojure"))
-  #_end)
