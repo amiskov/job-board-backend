@@ -48,6 +48,7 @@
   {:last-modified-ts    (:last-modified hit)
    :slug                (:slug hit)
    :last-modified-human (h/datetime (:last-modified hit))
+   :sponsorship-offered (:sponsorship-offered hit)
    :title               (:title hit)
    :company-country     (str (get-in hit [:company :name]) ", " (get-in hit [:location :country]))
    :company-size        (get-in hit [:company :size])
