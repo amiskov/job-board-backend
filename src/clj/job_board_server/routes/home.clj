@@ -3,6 +3,7 @@
     [job-board-server.layout :as layout]
     [clojure.walk :refer [keywordize-keys]]
     [clojure.contrib.humanize :as h]
+    [clojure.string :as str]
     [job-board-server.middleware :as middleware]
     [ring.util.response]
     [cheshire.core :as ch]
@@ -25,6 +26,7 @@
 (defn search-algolia [q]
   (.search algolia-index (Query. q)))                       ;
 
+
 (defn parse-remun [hit]
   (str (if (get-in hit [:remuneration :competitive])
          "Competitive"
@@ -33,13 +35,19 @@
            (str (->k (:min r)) " - " (->k (:max r)))))
        (when (get-in hit [:remuneration :equity]) " + Equity")))
 
+(defn smaller-logo-url [logo-url]
+  (let [id (last (str/split logo-url #"/"))
+        cdn-url "https://workshub.imgix.net/"
+        img-params "?fit=clip&crop=entropy&auto=format&w=40&h=40"]
+    (str cdn-url id img-params)))
+
 (defn parse-hit [hit]
   {:last-modified-ts    (:last-modified hit)
    :last-modified-human (h/datetime (:last-modified hit))
    :title               (:title hit)
    :company-country     (str (get-in hit [:company :name]) ", " (get-in hit [:location :country]))
    :company-size        (get-in hit [:company :size])
-   :logo                (get-in hit [:company :logo])
+   :logo                (smaller-logo-url (get-in hit [:company :logo]))
    :tags                (map #(select-keys % [:label :objectID]) (:tags hit))
    :role-type           (:role-type hit)
    :tagline             (:tagline hit)
@@ -80,3 +88,14 @@
                  middleware/wrap-formats]}
    ["/" {:get home-page}]
    ["/search" {:get search}]])
+
+(comment
+
+
+
+  (smaller-logo-url "https://functionalworks-backend--prod.s3.amazonaws.com/logos/b99b94fd5cf03260daed09943b18e596")
+
+
+  ;b99b94fd5cf03260daed09943b18e596
+  (parse-search-result (search-algolia "clojure"))
+  #_end)
